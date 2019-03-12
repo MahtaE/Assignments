@@ -1,21 +1,21 @@
-
+//Mahta Ellis
 //Assignment2
 
 #include <stdio.h>
 #include <malloc.h>
 #include <math.h>
 //Define a struct to represent an allocation block:
+
 struct Block {
     int block_size;                // # of bytes in the data section
     struct Block *next_block;     // pointer to the next block
 };
+
 // The data section follows after the above struct.
-int overhead_size = sizeof(struct Block); //size of block value as global variable
-                                         //and refer as overhead value
-int void_size = sizeof(void*); //size of void* as global variable
-                              //global pointer to the first free block in free list
-struct Block *free_head; // Block is type of structure, head of linkedlist// decoration
-  //for decoration
+
+int overhead_size = sizeof(struct Block); //size of block value as global variable and refer as overhead value
+int void_size = sizeof(void*); //size of void* as global variable global pointer to the first free block in free list
+struct Block *free_head; // Block is type of structure, head of linkedlist
 void my_initialize_heap(int size); 
 void* my_alloc(int size);
 void my_free(void *data);
@@ -39,6 +39,7 @@ void tests(){
     test5();
 }
 //Program to prompt the user for n values which are used to calculate the standard deviation
+
 void program()
 {
     int n = 0;
@@ -55,7 +56,7 @@ void program()
     scanf("%d",&n);
     for( i = 0; i<n; i++){
         int value;
-        //Allocate space for an array of n integers.
+//Allocate space for an array of n integers.
         // void* ptr = my_alloc(4);
         int* ptr;
         //blocks[i] = (void*)malloc(8); // standard allocate memory
@@ -93,27 +94,24 @@ void my_initialize_heap(int size){  // Initialize dynamic memory
     //intialize head with appropriate value for block_size
     free_head ->next_block = 0; // ..........................for next_block
 }
-//This function fils allocation request of size bytes
-//and returns a pointer to dataportion of block used
-
+//This function fils allocation request of size bytes and returns a pointer to dataportion of block used
 //Return a pointer for the allocated memory from the free memory list
 //ensure that the allocated memory can hold the requested memory size
 void* my_alloc(int size){
     struct Block *current = free_head;
     struct Block *previous = 0;
-    
-    //Set smallest size to be size of void
+//Set smallest size to be size of void
     if(size<void_size){
         size = void_size;
     }
-    //Loop until end of list
+//Loop until end of list
     while(current != 0) {
         int it_fits = current -> block_size >= size;
-        //Return memory if size fits in free list
+//Return memory if size fits in free list
         if(it_fits){
             void* void_current = (void*)current;
             int is_split = current -> block_size >= (size + overhead_size + void_size);
-            //Split buffer if space is available
+//Split buffer if space is available
             if (is_split){
                 struct Block *new_block = (struct Block*)(void_current + overhead_size + size);
                 new_block -> block_size = current -> block_size - size;
@@ -121,7 +119,7 @@ void* my_alloc(int size){
                 current -> block_size = size;
                 free_head = new_block;
             }
-            //Else remove node from free list
+ //Else remove node from free list
             else{
                 if(previous == 0){
                     free_head = current -> next_block;
