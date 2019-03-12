@@ -1,0 +1,226 @@
+
+//Assignment2
+
+#include <stdio.h>
+#include <malloc.h>
+#include <math.h>
+//Define a struct to represent an allocation block:
+struct Block {
+    int block_size;                // # of bytes in the data section
+    struct Block *next_block;     // pointer to the next block
+};
+// The data section follows after the above struct.
+int overhead_size = sizeof(struct Block); //size of block value as global variable
+                                         //and refer as overhead value
+int void_size = sizeof(void*); //size of void* as global variable
+                              //global pointer to the first free block in free list
+struct Block *free_head; // Block is type of structure, head of linkedlist// decoration
+  //for decoration
+void my_initialize_heap(int size); 
+void* my_alloc(int size);
+void my_free(void *data);
+void add_node(struct Block* node);
+void test1();
+void test2();
+void test3();
+void test4();
+void test5();
+void tests();
+void program();
+int main(){
+    tests();
+    program();
+}
+void tests(){
+    test1();
+    test2();
+    test3();
+    test4();
+    test5();
+}
+//Program to prompt the user for n values which are used to calculate the standard deviation
+void program()
+{
+    int n = 0;
+    int i;
+    double u;
+    double s;
+    void* blocks[100];
+    my_initialize_heap(10000);  // intilaise 1
+    printf("\n PROGRAM\n");
+    
+    
+    
+    printf("Enter a positive integer n:\n ");    //Ask the user to enter a positive integer n.
+    scanf("%d",&n);
+    for( i = 0; i<n; i++){
+        int value;
+        //Allocate space for an array of n integers.
+        // void* ptr = my_alloc(4);
+        int* ptr;
+        //blocks[i] = (void*)malloc(8); // standard allocate memory
+        blocks[i] = (void*)my_alloc(8);
+        printf("Enter value: \n");
+        scanf("%d",&value);
+        ptr = (int*)blocks[i];
+        *ptr = value;
+    }
+    //Calculate and print the standard deviation of the integers entered,
+    //using the formula
+    
+    //calculate mean
+    u = 0;
+    for(i=0; i<n; i++){
+        int* ptr = (int*)blocks[i];
+        u = u+(double)*ptr;
+    }
+    u = u/n;
+    //calculate standard diviation
+    s = 0;
+    for(i=0; i<n; i++){
+        int* ptr = (int*)blocks[i];
+        s = s + (*ptr - u) * (*ptr - u);
+    }
+    s = s/n;
+    s  = sqrt(s);
+    printf("standard diviation is:%10.2f\n", s);
+}
+//This function uses malloc to intialize a buffer of
+//given size to use customer allocator. Only time we can use malloc
+void my_initialize_heap(int size){  // Initialize dynamic memory
+    free_head = (struct Block*)malloc(size); // uses mallocto intialize a buffer of given size to use allocator.
+    free_head ->block_size = size; // global free_head points to buffer ,
+    //intialize head with appropriate value for block_size
+    free_head ->next_block = 0; // ..........................for next_block
+}
+//This function fils allocation request of size bytes
+//and returns a pointer to dataportion of block used
+
+//Return a pointer for the allocated memory from the free memory list
+//ensure that the allocated memory can hold the requested memory size
+void* my_alloc(int size){
+    struct Block *current = free_head;
+    struct Block *previous = 0;
+    
+    //Set smallest size to be size of void
+    if(size<void_size){
+        size = void_size;
+    }
+    //Loop until end of list
+    while(current != 0) {
+        int it_fits = current -> block_size >= size;
+        //Return memory if size fits in free list
+        if(it_fits){
+            void* void_current = (void*)current;
+            int is_split = current -> block_size >= (size + overhead_size + void_size);
+            //Split buffer if space is available
+            if (is_split){
+                struct Block *new_block = (struct Block*)(void_current + overhead_size + size);
+                new_block -> block_size = current -> block_size - size;
+                new_block -> next_block = 0;
+                current -> block_size = size;
+                free_head = new_block;
+            }
+            //Else remove node from free list
+            else{
+                if(previous == 0){
+                    free_head = current -> next_block;
+                }
+                else{
+                    previous -> next_block = current -> next_block;
+                }
+            }
+            return (void_current + 2);
+        }
+        previous = current;
+        current = current -> next_block;
+    }
+    
+    return 0;
+}
+//This function deaallocates a value allocated on data heap.The pointer will be to the data portion of block
+//move backwards in memory to find overhead block information, and link it to free list.
+//Free the memory pointer and return it to the free list
+void my_free(void *data){
+    struct Block *node = (struct Block *)(data - 2);
+    add_node(node);
+}
+//Add a new node to the head of the free list
+void add_node(struct Block* node){
+    node -> next_block = free_head;
+    free_head = node;
+}
+//Check that same memory is allocated after freeing memory slot
+void test1(){
+    int* ptr1;
+    int* ptr2;
+    printf("\n TEST1\n");
+    my_initialize_heap(100);
+    ptr1 = my_alloc(4);
+    printf("memory1: %p\n", ptr1);
+    my_free((void*)ptr1);
+    ptr2 = my_alloc(4);
+    printf("memory2: %p\n", ptr2);
+}
+//Check that allocated memory size is correct
+void test2(){
+    int* ptr1;
+    int* ptr2;
+    printf("\n TEST2\n");
+    my_initialize_heap(100);
+    ptr1 = my_alloc(4);
+    printf("memory1: %p\n", ptr1);
+    
+    ptr2 = my_alloc(4);
+    printf("memory2: %p\n", ptr2);
+    printf("Diffrence: %ld\n", ((long)ptr2-(long)ptr1));
+}
+//Check that memory allocation and freeing meets specs.
+void test3(){
+    int* ptr1;
+    int* ptr2;
+    int* ptr3;
+    double* ptr;
+    printf("\n TEST3\n");
+    my_initialize_heap(100);
+    ptr1 = my_alloc(4);
+    printf("memory1: %p\n", ptr1);
+    
+    ptr2 = my_alloc(4);
+    printf("memory2: %p\n", ptr2);
+    ptr3 = my_alloc(4);
+    printf("memory3: %p\n", ptr3);
+    my_free((void*)ptr2);
+    ptr = my_alloc(8);
+    printf("memory2: %p\n", ptr);
+}
+//Check that smallest memory size is size of void*
+void test4(){
+    char* ptr1;
+    int* ptr2;
+    printf("\n TEST4\n");
+    my_initialize_heap(100);
+    ptr1 = my_alloc(1);
+    printf("memory1: %p\n", ptr1);
+    
+    ptr2 = my_alloc(4);
+    printf("memory2: %p\n", ptr2);
+    printf("Diffrence: %ld\n", ((long)ptr2-(long)ptr1));
+}
+//Check that memory allocation for big and small blocks work correctly.
+void test5(){
+    int* ptr1;
+    int* ptr2;
+    printf("\n TEST5\n");
+    my_initialize_heap(4000);
+    ptr1 = my_alloc(400);
+    printf("memory1: %p\n", ptr1);
+    
+    ptr2 = my_alloc(4);
+    *ptr2 = 123;
+    printf("memory2: %p : %d\n", ptr2,*ptr2);
+    printf("Diffrence: %ld\n", ((long)ptr2-(long)ptr1));
+    my_free((void*)ptr1);
+    printf("memory2: %p : %d\n", ptr2,*ptr2);
+}
+//end of program
